@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "257047388278",
+    "project_id": "cinemago-369e8",
+    "storage_bucket": "cinemago-369e8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:257047388278:android:3600ff523274dce45cff57",
+        "android_client_info": {
+          "package_name": "com.cinemago"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFPNfbWFR4aZpqCJTo1Awnz_h6az2qJHU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
