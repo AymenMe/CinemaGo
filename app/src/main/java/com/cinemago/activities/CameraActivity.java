@@ -1,11 +1,16 @@
 package com.cinemago.activities;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
@@ -26,6 +31,16 @@ public class CameraActivity extends AppCompatActivity {
     private PreviewView previewView;
     private ProgressBar progressBar;
 
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    startCamera();
+                } else {
+                    Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,20 +51,23 @@ public class CameraActivity extends AppCompatActivity {
         Button btnCapture = findViewById(R.id.btn_capture);
         Button btnBack    = findViewById(R.id.btn_back);
 
-        startCamera();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            startCamera();
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
 
         btnCapture.setOnClickListener(v -> takePhoto());
         btnBack.setOnClickListener(v -> finish());
     }
 
     private void startCamera() {
-        ListenableFuture<ProcessCameraProvider> future =
-                ProcessCameraProvider.getInstance(this);
+        ListenableFuture<ProcessCameraProvider> future = ProcessCameraProvider.getInstance(this);
 
         future.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = future.get();
-
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
@@ -57,13 +75,17 @@ public class CameraActivity extends AppCompatActivity {
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         .build();
 
-                cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(this,
-                        CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture);
+                // Try back camera, fall back to front if needed
+                CameraSelector selector = CameraSelector.DEFAULT_BACK_CAMERA;
+                if (!cameraProvider.hasCamera(selector)) {
+                    selector = CameraSelector.DEFAULT_FRONT_CAMERA;
+                }
 
-            } catch (ExecutionException | InterruptedException e) {
-                Toast.makeText(this, "Camera error: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                cameraProvider.unbindAll();
+                cameraProvider.bindToLifecycle(this, selector, preview, imageCapture);
+
+            } catch (Exception e) {
+                Toast.makeText(this, "Camera setup failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }, ContextCompat.getMainExecutor(this));
     }
@@ -71,28 +93,22 @@ public class CameraActivity extends AppCompatActivity {
     private void takePhoto() {
         if (imageCapture == null) return;
 
-        File photoFile = new File(getExternalFilesDir(null),
-                "photo_" + System.currentTimeMillis() + ".jpg");
-
-        ImageCapture.OutputFileOptions options =
-                new ImageCapture.OutputFileOptions.Builder(photoFile).build();
+        File photoFile = new File(getExternalFilesDir(null), "photo_" + System.currentTimeMillis() + ".jpg");
+        ImageCapture.OutputFileOptions options = new ImageCapture.OutputFileOptions.Builder(photoFile).build();
 
         progressBar.setVisibility(View.VISIBLE);
 
         imageCapture.takePicture(options, ContextCompat.getMainExecutor(this),
                 new ImageCapture.OnImageSavedCallback() {
                     @Override
-                    public void onImageSaved(@androidx.annotation.NonNull ImageCapture.OutputFileResults output) {
-                        Uri savedUri = Uri.fromFile(photoFile);
-                        uploadPhoto(savedUri);
+                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults output) {
+                        uploadPhoto(Uri.fromFile(photoFile));
                     }
 
                     @Override
-                    public void onError(@androidx.annotation.NonNull ImageCaptureException exception) {
+                    public void onError(@NonNull ImageCaptureException exception) {
                         progressBar.setVisibility(View.GONE);
-                        Toast.makeText(CameraActivity.this,
-                                "Capture failed: " + exception.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CameraActivity.this, "Capture failed: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -101,29 +117,24 @@ public class CameraActivity extends AppCompatActivity {
         FirebaseManager.getInstance().uploadPhoto(uri, new FirebaseManager.UploadCallback() {
             @Override
             public void onSuccess(String downloadUrl) {
-                FirebaseManager.getInstance().savePhotoUrl(downloadUrl,
-                        new FirebaseManager.SimpleCallback() {
-                            @Override
-                            public void onSuccess() {
-                                progressBar.setVisibility(View.GONE);
-                                Toast.makeText(CameraActivity.this,
-                                        "Photo saved!", Toast.LENGTH_SHORT).show();
-                                finish();
-                            }
-                            @Override
-                            public void onError(String error) {
-                                progressBar.setVisibility(View.GONE);
-                                Toast.makeText(CameraActivity.this,
-                                        "Save error: " + error, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                FirebaseManager.getInstance().savePhotoUrl(downloadUrl, new FirebaseManager.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(CameraActivity.this, "Photo saved!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                    @Override
+                    public void onError(String error) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(CameraActivity.this, "Save error: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
-
             @Override
             public void onError(String error) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(CameraActivity.this,
-                        "Upload error: " + error, Toast.LENGTH_SHORT).show();
+                Toast.makeText(CameraActivity.this, "Upload error: " + error, Toast.LENGTH_SHORT).show();
             }
         });
     }

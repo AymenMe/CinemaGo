@@ -2,15 +2,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="horizontal"
     android:gravity="end"
-    android:padding="8dp">
+    android:padding="4dp">
 
     <TextView
         android:id="@+id/tv_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
+        android:maxWidth="260dp"
         android:background="@drawable/bg_bubble_user"
         android:padding="12dp"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:layout_margin="4dp"/>
+
 </LinearLayout>

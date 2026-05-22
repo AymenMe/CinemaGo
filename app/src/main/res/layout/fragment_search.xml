@@ -3,47 +3,62 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/bg_dark"
     android:padding="16dp">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search Movies"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Search Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_search_bar"
-        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="4dp">
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_search_bar"
+        android:padding="4dp"
+        android:layout_marginBottom="16dp">
 
         <EditText
             android:id="@+id/et_search"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
             android:hint="Search movies..."
-            android:imeOptions="actionSearch"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:background="@null"
+            android:padding="12dp"
             android:inputType="text"
-            android:padding="12dp" />
+            android:imeOptions="actionSearch"/>
 
         <ImageButton
             android:id="@+id/btn_mic"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_mic" />
+            android:src="@drawable/ic_mic"
+            android:background="@null"
+            android:padding="8dp"
+            android:tint="@color/accent_red"/>
     </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progress_bar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:visibility="gone" />
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:indeterminateTint="@color/accent_red"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_results"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="8dp" />
+        android:layout_height="match_parent"/>
 
 </LinearLayout>

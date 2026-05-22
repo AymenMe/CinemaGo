@@ -9,16 +9,27 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="google.navigation" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="CinemaGo"
-        android:usesCleartextTraffic="false">
+        android:theme="@style/Theme.CinemaGo"
+        android:usesCleartextTraffic="true">
 
-        <!-- Google Maps API Key -->
+        <!-- Google Maps API Key - Must match Constants.java -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
+            android:value="AIzaSyDRntDHTtIdwX2t49VAgvlzPaw2achc-RU"/>
 
         <activity android:name=".activities.SplashActivity"
             android:exported="true">
